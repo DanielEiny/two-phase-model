@@ -83,10 +83,10 @@ reconstruct_lineage_trees <- function(data_set_path) {
                     if (ancestor_id == "Germline") {
                             ancestor_origin <- "Germline"
                     } else {
-                            if (observed) {
-                                    ancestor_origin <- "PHYLOGENY_OBSERVED"
-                            } else {
+                            if (grepl("Inferred", ancestor_id)) {
                                     ancestor_origin <- "PHYLOGENY_INFERRED"
+                            } else {
+                                    ancestor_origin <- "OBSERVED"
                             }
                     }
                     repertoire$ancestor_origin[descendant_loc] <- ancestor_origin
