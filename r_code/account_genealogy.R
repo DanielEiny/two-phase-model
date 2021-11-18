@@ -4,7 +4,7 @@ library(dplyr)
 library(stringr)
 
 
-reconstruct_lineage_trees <- function(data_set_path) {
+account_genealogy <- function(data_set_path) {
     # ----- Read & filter data ----- #
     # TODO: drop irrelevant columns
     # TODO: filter by conscount, dupcount - use cli arguments
@@ -31,7 +31,7 @@ reconstruct_lineage_trees <- function(data_set_path) {
                                             text_fields = c("c_call"),
                                             num_fields = "duplicate_count"))
 
-    # ----- Build lineages ----- #
+    # ----- Reconstruct lineages ----- #
     phylip_exec <- "/home/bcrlab/daniel/two-phase-model/phylip-3.697/exe/dnapars"
     graphs <- lapply(clones$CHANGEO,
                      buildPhylipLineage,
@@ -39,7 +39,7 @@ reconstruct_lineage_trees <- function(data_set_path) {
                      rm_temp = TRUE)
     graphs[sapply(graphs, is.null)] <- NULL  # In case of singleton clone
 
-    # ----- Add new columns ----- #
+    # ----- Add new columns to data frame ----- #
     repertoire$ancestor_alignment <- repertoire$germline_alignment
     repertoire$sequence_origin <- "OBSERVED"
     repertoire$ancestor_origin <- "GERMLINE"
