@@ -3,15 +3,15 @@ library(alakazam)
 library(dplyr)
 library(stringr)
 
+source("r_code/list_of_columns_to_keep.R")
 
 account_genealogy <- function(data_set_path) {
     # ----- Read & filter data ----- #
-    # TODO: drop irrelevant columns
-    # TODO: filter by conscount, dupcount - use cli arguments
     repertoire <- read.table(data_set_path,
                              sep = "\t",
                              header = TRUE,
                              fill = TRUE)
+    repertoire <- repertoire[keep]
     na_filter <- !is.na(repertoire$clone_id)
     fake_filter <- !sapply(repertoire$sequence_id,
                            FUN = grepl,
