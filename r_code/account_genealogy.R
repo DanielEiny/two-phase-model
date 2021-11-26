@@ -5,18 +5,18 @@ library(stringr)
 
 source("r_code/list_of_columns_to_keep.R")
 
-account_genealogy <- function(data_set_path) {
+account_genealogy <- function(input_file_path, out_file_path) {
     # ----- Read & filter data ----- #
-    repertoire <- read.table(data_set_path,
+    repertoire <- read.table(input_file_path,
                              sep = "\t",
                              header = TRUE,
                              fill = TRUE)
-    repertoire <- repertoire[keep]
-    na_filter <- !is.na(repertoire$clone_id)
-    fake_filter <- !sapply(repertoire$sequence_id,
-                           FUN = grepl,
-                           pattern = "FAKE")
-    repertoire <- repertoire[na_filter & fake_filter, ]
+    #repertoire <- repertoire[keep]
+    #na_filter <- !is.na(repertoire$clone_id)
+    #fake_filter <- !sapply(repertoire$sequence_id,
+    #                       FUN = grepl,
+    #                       pattern = "FAKE")
+    #repertoire <- repertoire[na_filter & fake_filter, ]
 
     # Pad germline where sequence padded to fixed clone sequence length
     repertoire$germline_alignment <- str_pad(string = repertoire$germline_alignment,
@@ -28,6 +28,7 @@ account_genealogy <- function(data_set_path) {
     clones <- repertoire %>%
               group_by(clone_id) %>%
               do(CHANGEO = makeChangeoClone(.,
+                                            germ = "germline_alignment_d_mask",
                                             text_fields = c("c_call"),
                                             num_fields = "duplicate_count"))
 
@@ -45,6 +46,7 @@ account_genealogy <- function(data_set_path) {
     repertoire$ancestor_origin <- "GERMLINE"
 
     # ----- Loop over lineage graphs, fill columns and append rows ----- #
+    inferred_sequences_counter <- 0
     for (g in graphs){
             edges <- get.edgelist(g)
             vertex_attributes <- get.vertex.attribute(g)
@@ -65,15 +67,12 @@ account_genealogy <- function(data_set_path) {
                             repertoire$ancestor_alignment[descendant_loc] <- ancestor_alignment 
 
                     } else {  # Inferred sequence, add row
-                            new_row <- repertoire[1, ]
-                            new_row[] <- NA
+                            inferred_sequences_counter = inferred_sequences_counter + 1
+                            new_row <- clone_representative
+                            new_row$sequence_id = paste0("INFERRED_", as.character(inferred_sequences_counter))
                             new_row$sequence_origin <- "PHYLOGENY_INFERRED"
                             new_row$sequence_alignment <- vertex_attributes$sequence[i]
                             new_row$ancestor_alignment <- ancestor_alignment
-                            new_row$v_call <- clone_representative$v_call
-                            new_row$d_call <- clone_representative$d_call
-                            new_row$j_call <- clone_representative$j_call
-                            new_row$junction_length <- clone_representative$junction_length
 
                             descendant_loc <- nrow(repertoire) + 1
                             repertoire <- rbind(repertoire, new_row)
@@ -91,8 +90,11 @@ account_genealogy <- function(data_set_path) {
                     }
                     repertoire$ancestor_origin[descendant_loc] <- ancestor_origin
             }
-
     }
 
-    return(repertoire)
+    # ----- Save to file ----- #
+    write.table(repertoire, file = out_file_path, sep = "\t", row.names = FALSE)
 }
+
+account_genealogy("data/P10/P10_I3_S3_cloned_w_filtered_seqs.tsv",
+                  "data/tmp.tsv")
