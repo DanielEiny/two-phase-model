@@ -101,11 +101,12 @@ def define_clones(sample_path,
     file_name = os.path.basename(sample_path)
     out_file_path = os.path.join(output_dir, file_name)
     os.makedirs(output_dir, exist_ok=True)
+    sample_name = file_name.replace('_cloned_w_filtered_seqs.tsv', '')
 
     repertoire = pd.read_csv(sample_path, sep='\t')
 
     # --- filter data, drop irrelevant columns, and save to temporary file --- #
-    print(f'{time.ctime()} | {file_name}: Read & Filter ')
+    print(f'{time.ctime()} | {sample_name}: Read & Filter ')
     repertoire = repertoire.drop(columns=creat_germline_fields + irrelevant_fields,
                                  errors='ignore')
 
@@ -133,7 +134,7 @@ def define_clones(sample_path,
     threshold = float(result.stdout.decode().split(' ')[1])
 
     # --- run DefineClones.py --- #
-    print(f'{time.ctime()} | {file_name}: DefineClones ')
+    print(f'{time.ctime()} | {sample_name}: DefineClones ')
     subprocess.run(['nice', '-19',
                     'DefineClones.py',
                     '-d', out_file_path,
@@ -167,7 +168,7 @@ def define_clones(sample_path,
                     stdout=f)
 
     # --- Clean-up --- #
-    print(f'{time.ctime()} | {file_name}: Clean-up ')
+    print(f'{time.ctime()} | {sample_name}: Clean-up ')
     f.close()
     subprocess.run(['rm',
                     out_file_path.replace(".tsv", "_clone-pass.tsv")])
