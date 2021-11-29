@@ -123,49 +123,64 @@ def define_clones(sample_path,
     # --- Find optimal clone seperation distance using "shazam" --- #
     logfile = os.path.join(output_dir, 'log.tmp')
     f = open(logfile, 'w')
-    print(f'{time.ctime()} | {file_name}: Find clone split threshold ')
-    result = subprocess.run(['nice',
-                             '-19',
-                             'Rscript',
-                             'r_code/find_clone_split_threshold.R', 
-                             out_file_path],
-                             stderr=f,
-                             stdout=subprocess.PIPE)
-    threshold = float(result.stdout.decode().split(' ')[1])
+    print(f'{time.ctime()} | {sample_name}: Find clone split threshold ')
+    try:
+        result = subprocess.run(['nice',
+                                 '-19',
+                                 'Rscript',
+                                 'r_code/find_clone_split_threshold.R', 
+                                 out_file_path],
+                                 timeout=3600,
+                                 stderr=f,
+                                 stdout=subprocess.PIPE)
+        threshold = float(result.stdout.decode().split(' ')[-1])
+    except:
+        print(f'{time.ctime()} | {sample_name}: Faild! ')
+        os.remove(out_file_path)
+        return
 
     # --- run DefineClones.py --- #
     print(f'{time.ctime()} | {sample_name}: DefineClones ')
-    subprocess.run(['nice', '-19',
-                    'DefineClones.py',
-                    '-d', out_file_path,
-                    '--act', 'set',
-                    '--model', 'ham',
-                    '--norm', 'len',
-                    '--dist', str(threshold),
-                    '--nproc', '60'], 
-                    stderr=f,
-                    stdout=f)
+    try:
+        subprocess.run(['nice', '-19',
+                        'DefineClones.py',
+                        '-d', out_file_path,
+                        '--act', 'set',
+                        '--model', 'ham',
+                        '--norm', 'len',
+                        '--dist', str(threshold),
+                        '--nproc', '60'],
+                        stderr=f,
+                        stdout=f)
+    except:
+        print(f'{time.ctime()} | {sample_name}: Faild! ')
+        os.remove(out_file_path)
+        return
 
     # --- run CreateGermlines.py --- #
-    print(f'{time.ctime()} | {file_name}: CreateGermlines ')
+    print(f'{time.ctime()} | {sample_name}: CreateGermlines ')
 
     personal_genotype_dir = sample_path.replace('_cloned_w_filtered_seqs.tsv', 
                                                 '_interm_files')
     genotyped_v_ref = os.path.join(personal_genotype_dir, 
-                                   file_name.replace('_cloned_w_filtered_seqs.tsv', 
-                                                     '_V_personal_ref_gapped.fasta'))
+                                   sample_name + '_V_personal_ref_gapped.fasta')
     genotyped_d_ref = genotyped_v_ref.replace('_V_personal_ref_gapped.fasta',
                                               '_D_personal_ref.fasta')
     genotyped_j_ref = genotyped_d_ref.replace('D', 'J')
 
-    subprocess.run(['nice', '-19',
-                    'CreateGermlines.py',
-                    '-d', out_file_path.replace(".tsv", "_clone-pass.tsv"),
-                    '-g', 'dmask',
-                    '-r', genotyped_v_ref, genotyped_d_ref, genotyped_j_ref,
-                    '--cloned'],
-                    stderr=f,
-                    stdout=f)
+    try:
+        subprocess.run(['nice', '-19',
+                        'CreateGermlines.py',
+                        '-d', out_file_path.replace(".tsv", "_clone-pass.tsv"),
+                        '-g', 'dmask',
+                        '-r', genotyped_v_ref, genotyped_d_ref, genotyped_j_ref,
+                        '--cloned'],
+                        stderr=f,
+                        stdout=f)
+    except:
+        print(f'{time.ctime()} | {sample_name}: Faild! ')
+        os.remove(out_file_path)
+        return
 
     # --- Clean-up --- #
     print(f'{time.ctime()} | {sample_name}: Clean-up ')
