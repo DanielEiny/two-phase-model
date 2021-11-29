@@ -167,6 +167,33 @@ def define_clones(sample_path,
     genotyped_d_ref = genotyped_v_ref.replace('_V_personal_ref_gapped.fasta',
                                               '_D_personal_ref.fasta')
     genotyped_j_ref = genotyped_d_ref.replace('D', 'J')
+    
+    # > Patch for covid and cancer files < #
+    #personal_genotype_arcive_name = sample_name + '_interm_files'
+    #sampe_dir = os.path.dirname(sample_path)
+    #personal_genotype_arcive = os.path.join(sampe_dir,
+    #                                        sample_name,
+    #                                        personal_genotype_arcive_name)
+
+    #genotyped_v_ref = os.path.join(personal_genotype_arcive_name, sample_name + '_V_personal_ref_gapped.fasta')
+    #genotyped_d_ref = os.path.join(personal_genotype_arcive_name, sample_name + '_D_personal_ref.fasta')
+    #genotyped_j_ref = os.path.join(personal_genotype_arcive_name, sample_name + '_J_personal_ref.fasta')
+
+    #subprocess.run(['nice', '-19',
+    #                'tar', '-xzvf',
+    #                personal_genotype_arcive + '.tgz',
+    #                '-C',
+    #                output_dir,
+    #                genotyped_v_ref,
+    #                genotyped_d_ref ,
+    #                genotyped_j_ref],
+    #                stderr=f,
+    #                stdout=f)
+    #genotyped_v_ref = os.path.join(output_dir, genotyped_v_ref)
+    #genotyped_d_ref = os.path.join(output_dir, genotyped_d_ref)
+    #genotyped_j_ref = os.path.join(output_dir, genotyped_j_ref)
+    # > end of patch < #
+
 
     try:
         subprocess.run(['nice', '-19',
