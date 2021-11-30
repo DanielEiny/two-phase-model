@@ -5,8 +5,12 @@ library(stringr)
 
 source("r_code/list_of_columns_to_keep.R")
 
-account_genealogy <- function(input_file_path, out_file_path) {
-    # ----- Read & filter data ----- #
+account_genealogy <- function (input_file_path, out_file_path) {
+    # ----- read & filter data ----- #
+    sample_name <- gsub("_cloned_w_filtered_seqs.tsv",
+                        "", basename(input_file_path))
+    message(Sys.time(), " | ", sample_name, ": read & filter data")
+
     repertoire <- read.table(input_file_path,
                              sep = "\t",
                              header = TRUE,
@@ -25,6 +29,7 @@ account_genealogy <- function(input_file_path, out_file_path) {
                                              pad = "N")
 
     # ----- Preprocess clones ----- #
+    message(Sys.time(), " | ", sample_name, ": Preprocess clones")
     clones <- repertoire %>%
               group_by(clone_id) %>%
               do(CHANGEO = makeChangeoClone(.,
@@ -33,6 +38,7 @@ account_genealogy <- function(input_file_path, out_file_path) {
                                             num_fields = "duplicate_count"))
 
     # ----- Reconstruct lineages ----- #
+    message(Sys.time(), " | ", sample_name, ": Reconstruct lineages")
     phylip_exec <- "/home/bcrlab/daniel/two-phase-model/phylip-3.697/exe/dnapars"
     graphs <- lapply(clones$CHANGEO,
                      buildPhylipLineage,
@@ -41,7 +47,7 @@ account_genealogy <- function(input_file_path, out_file_path) {
     graphs[sapply(graphs, is.null)] <- NULL  # In case of singleton clone
 
     # ----- Add new columns to data frame ----- #
-    repertoire$ancestor_alignment <- repertoire$germline_alignment
+    repertoire$ancestor_alignment <- repertoire$germline_alignment_d_mask
     repertoire$sequence_origin <- "OBSERVED"
     repertoire$ancestor_origin <- "GERMLINE"
 
@@ -80,7 +86,7 @@ account_genealogy <- function(input_file_path, out_file_path) {
 
                     # Fill ancestor origin
                     if (ancestor_id == "Germline") {
-                            ancestor_origin <- "Germline"
+                            ancestor_origin <- "GERMLINE"
                     } else {
                             if (grepl("Inferred", ancestor_id)) {
                                     ancestor_origin <- "PHYLOGENY_INFERRED"
@@ -93,8 +99,9 @@ account_genealogy <- function(input_file_path, out_file_path) {
     }
 
     # ----- Save to file ----- #
+    message(Sys.time(), " | ", sample_name, ": Save to file")
     write.table(repertoire, file = out_file_path, sep = "\t", row.names = FALSE)
 }
 
-account_genealogy("data/P10/P10_I3_S3_cloned_w_filtered_seqs.tsv",
-                  "data/tmp.tsv")
+#account_genealogy("data/P10/P10_I3_S3_cloned_w_filtered_seqs.tsv",
+#                  "data/tmp.tsv")

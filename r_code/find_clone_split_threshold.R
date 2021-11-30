@@ -1,7 +1,7 @@
 library(shazam)
 
 
-calc_thresold <- function(sample_path) {
+calc_threshold <- function(sample_path) {
         subsample_size <- 1000
         repertoire <- read.table(sample_path,
                                  sep = "\t",
@@ -19,4 +19,4 @@ calc_thresold <- function(sample_path) {
 }
 
 args <- commandArgs(trailingOnly = TRUE)
-calc_thresold(args[1])
+calc_threshold(args[1])
