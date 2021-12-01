@@ -112,9 +112,16 @@ def define_clones(sample_path,
 
     consensus_count_filter = repertoire.consensus_count > consensus_count_above
     v_length_filter = repertoire.v_sequence_end > v_sequence_end_above
-    no_umi_filter = ~repertoire.sequence_id.str.contains('fake')
-    nan_filter = ~repertoire[required_fields].isna().any(axis=1)
-    filter_union = consensus_count_filter & v_length_filter & no_umi_filter & nan_filter
+    no_umi_filter = ~repertoire.sequence_id.str.contains('FAKE')
+    required_fields_filter = ~repertoire[required_fields].isna().any(axis=1)
+    nan_filter = ~repertoire.complete_vdj.isna()  # Occures in cancer set, 
+                                                  # indicates copy sequences.
+    filter_union = consensus_count_filter & \
+                   v_length_filter & \
+                   no_umi_filter & \
+                   required_fields_filter & \
+                   nan_filter
+
     repertoire = repertoire[filter_union]
     repertoire[int_fields] = repertoire[int_fields].astype(int)
 
