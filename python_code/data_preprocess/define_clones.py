@@ -177,9 +177,9 @@ def define_clones(sample_path,
     
     # > Patch for covid and cancer files < #
     #personal_genotype_arcive_name = sample_name + '_interm_files'
-    #sampe_dir = os.path.dirname(sample_path)
-    #personal_genotype_arcive = os.path.join(sampe_dir,
-    #                                        sample_name,
+    #sample_dir = os.path.dirname(sample_path)
+    #personal_genotype_arcive = os.path.join(sample_dir,
+    #                                        sample_name, # For covid only
     #                                        personal_genotype_arcive_name)
 
     #genotyped_v_ref = os.path.join(personal_genotype_arcive_name, sample_name + '_V_personal_ref_gapped.fasta')
