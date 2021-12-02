@@ -5,7 +5,7 @@ library(stringr)
 
 source("r_code/list_of_columns_to_keep.R")
 
-account_genealogy <- function (input_file_path, out_file_path) {
+account_genealogy <- function(input_file_path, out_file_path) {
     # ----- read & filter data ----- #
     sample_name <- gsub("_cloned_w_filtered_seqs.tsv",
                         "", basename(input_file_path))
@@ -15,12 +15,6 @@ account_genealogy <- function (input_file_path, out_file_path) {
                              sep = "\t",
                              header = TRUE,
                              fill = TRUE)
-    #repertoire <- repertoire[keep]
-    #na_filter <- !is.na(repertoire$clone_id)
-    #fake_filter <- !sapply(repertoire$sequence_id,
-    #                       FUN = grepl,
-    #                       pattern = "FAKE")
-    #repertoire <- repertoire[na_filter & fake_filter, ]
 
     # Pad germline where sequence padded to fixed clone sequence length
     repertoire$germline_alignment <- str_pad(string = repertoire$germline_alignment,
@@ -53,31 +47,33 @@ account_genealogy <- function (input_file_path, out_file_path) {
 
     # ----- Loop over lineage graphs, fill columns and append rows ----- #
     inferred_sequences_counter <- 0
-    for (g in graphs){
+    for (g in graphs) {
+            browser()
             edges <- get.edgelist(g)
             vertex_attributes <- get.vertex.attribute(g)
 
             clone_representative_id <- vertex_attributes$label[which(!grepl("Inferred|Germline", vertex_attributes$label))[1]]
             clone_representative <- repertoire[which(repertoire$sequence_id == clone_representative_id), ]
-            
-            for (i in 1:dim(edges)[1]){
-                    descendant_id <- edges[i, 2]
+
+            for (i in 1:dim(edges)[1]) {
                     ancestor_id <- edges[i, 1]
+                    descendant_id <- edges[i, 2]
                     ancestor_alignment <- vertex_attributes$sequence[which(vertex_attributes$label == ancestor_id)]
+                    descendant_alignment <- vertex_attributes$sequence[which(vertex_attributes$label == descendant_id)]
 
                     # Fill ancestor sequence / add entire row
                     observed <- !grepl("Inferred", descendant_id)
 
                     if (observed) {  # Observed sequence, row already exist
                             descendant_loc <- which(repertoire$sequence_id == descendant_id)
-                            repertoire$ancestor_alignment[descendant_loc] <- ancestor_alignment 
+                            repertoire$ancestor_alignment[descendant_loc] <- ancestor_alignment
 
                     } else {  # Inferred sequence, add row
-                            inferred_sequences_counter = inferred_sequences_counter + 1
+                            inferred_sequences_counter <- inferred_sequences_counter + 1
                             new_row <- clone_representative
-                            new_row$sequence_id = paste0("INFERRED_", as.character(inferred_sequences_counter))
+                            new_row$sequence_id <- paste0("INFERRED_", as.character(inferred_sequences_counter))
                             new_row$sequence_origin <- "PHYLOGENY_INFERRED"
-                            new_row$sequence_alignment <- vertex_attributes$sequence[i]
+                            new_row$sequence_alignment <- descendant_alignment
                             new_row$ancestor_alignment <- ancestor_alignment
 
                             descendant_loc <- nrow(repertoire) + 1
