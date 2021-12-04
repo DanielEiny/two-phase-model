@@ -5,6 +5,29 @@ library(stringr)
 
 source("r_code/list_of_columns_to_keep.R")
 
+
+setRefClass("sequences_reference_object", fields = c(sequences = "character"))
+
+replace_ambiguity_codes <- function(sequences, edges, labels, current_id) {
+    #' Replace IUPAC ambiguity symbols that PHYLIP assign in inffered sequences
+    #' with the matching symbol from ancestor
+
+    if (grepl("Inferred", current_id)) {
+        ancestor_id <- edges[which(edges[, 2] == current_id), 1]
+        ancestor_loc <- which(labels == ancestor_id)
+        current_loc <- which(labels == current_id)
+        ambiguity_symbols <- unlist(gregexpr("[^CGATN]", sequences$sequences[current_loc]))
+        for (symbol in ambiguity_symbols) {
+            copy_nucleotyde <- substr(sequences$sequences[ancestor_loc], symbol, symbol)
+            substr(sequences$sequences[current_loc], symbol, symbol) <- copy_nucleotyde
+        }
+    }
+    descendants <- which(edges[, 1] == current_id)
+    for (i in descendants) {
+        replace_ambiguity_codes(sequences, edges, labels, edges[i, 2])
+    }
+}
+
 account_genealogy <- function(input_file_path, out_file_path) {
     # ----- read & filter data ----- #
     sample_name <- gsub("_cloned_w_filtered_seqs.tsv",
@@ -48,50 +71,53 @@ account_genealogy <- function(input_file_path, out_file_path) {
     # ----- Loop over lineage graphs, fill columns and append rows ----- #
     inferred_sequences_counter <- 0
     for (g in graphs) {
-            browser()
-            edges <- get.edgelist(g)
-            vertex_attributes <- get.vertex.attribute(g)
+        edges <- get.edgelist(g)
+        vertex_attributes <- get.vertex.attribute(g)
 
-            clone_representative_id <- vertex_attributes$label[which(!grepl("Inferred|Germline", vertex_attributes$label))[1]]
-            clone_representative <- repertoire[which(repertoire$sequence_id == clone_representative_id), ]
+        sequence_list <- new("sequences_reference_object",
+                              sequences = vertex_attributes$sequence)
+        replace_ambiguity_codes(sequence_list, edges, vertex_attributes$label, "Germline")
 
-            for (i in 1:dim(edges)[1]) {
-                    ancestor_id <- edges[i, 1]
-                    descendant_id <- edges[i, 2]
-                    ancestor_alignment <- vertex_attributes$sequence[which(vertex_attributes$label == ancestor_id)]
-                    descendant_alignment <- vertex_attributes$sequence[which(vertex_attributes$label == descendant_id)]
+        clone_representative_id <- vertex_attributes$label[which(!grepl("Inferred|Germline", vertex_attributes$label))[1]]
+        clone_representative <- repertoire[which(repertoire$sequence_id == clone_representative_id), ]
 
-                    # Fill ancestor sequence / add entire row
-                    observed <- !grepl("Inferred", descendant_id)
+        for (i in 1:dim(edges)[1]) {
+            ancestor_id <- edges[i, 1]
+            descendant_id <- edges[i, 2]
+            ancestor_alignment <- sequence_list$sequences[which(vertex_attributes$label == ancestor_id)]
+            descendant_alignment <- sequence_list$sequences[which(vertex_attributes$label == descendant_id)]
 
-                    if (observed) {  # Observed sequence, row already exist
-                            descendant_loc <- which(repertoire$sequence_id == descendant_id)
-                            repertoire$ancestor_alignment[descendant_loc] <- ancestor_alignment
+            # Fill ancestor sequence / add entire row
+            observed <- !grepl("Inferred", descendant_id)
 
-                    } else {  # Inferred sequence, add row
-                            inferred_sequences_counter <- inferred_sequences_counter + 1
-                            new_row <- clone_representative
-                            new_row$sequence_id <- paste0("INFERRED_", as.character(inferred_sequences_counter))
-                            new_row$sequence_origin <- "PHYLOGENY_INFERRED"
-                            new_row$sequence_alignment <- descendant_alignment
-                            new_row$ancestor_alignment <- ancestor_alignment
+            if (observed) {  # Observed sequence, row already exist
+                descendant_loc <- which(repertoire$sequence_id == descendant_id)
+                repertoire$ancestor_alignment[descendant_loc] <- ancestor_alignment
 
-                            descendant_loc <- nrow(repertoire) + 1
-                            repertoire <- rbind(repertoire, new_row)
-                    }
+            } else {  # Inferred sequence, add row
+                inferred_sequences_counter <- inferred_sequences_counter + 1
+                new_row <- clone_representative
+                new_row$sequence_id <- paste0("INFERRED_", as.character(inferred_sequences_counter))
+                new_row$sequence_origin <- "PHYLOGENY_INFERRED"
+                new_row$ancestor_alignment <- ancestor_alignment
+                new_row$sequence_alignment <- descendant_alignment
 
-                    # Fill ancestor origin
-                    if (ancestor_id == "Germline") {
-                            ancestor_origin <- "GERMLINE"
-                    } else {
-                            if (grepl("Inferred", ancestor_id)) {
-                                    ancestor_origin <- "PHYLOGENY_INFERRED"
-                            } else {
-                                    ancestor_origin <- "OBSERVED"
-                            }
-                    }
-                    repertoire$ancestor_origin[descendant_loc] <- ancestor_origin
+                descendant_loc <- nrow(repertoire) + 1
+                repertoire <- rbind(repertoire, new_row)
             }
+
+            # Fill ancestor origin
+            if (ancestor_id == "Germline") {
+                ancestor_origin <- "GERMLINE"
+            } else {
+                if (grepl("Inferred", ancestor_id)) {
+                        ancestor_origin <- "PHYLOGENY_INFERRED"
+                } else {
+                        ancestor_origin <- "OBSERVED"
+                }
+            }
+            repertoire$ancestor_origin[descendant_loc] <- ancestor_origin
+        }
     }
 
     # ----- Save to file ----- #
@@ -99,5 +125,5 @@ account_genealogy <- function(input_file_path, out_file_path) {
     write.table(repertoire, file = out_file_path, sep = "\t", row.names = FALSE)
 }
 
-#account_genealogy("data/P10/P10_I3_S3_cloned_w_filtered_seqs.tsv",
-#                  "data/tmp.tsv")
+account_genealogy("data/P4/P4_I1_S1_cloned_w_filtered_seqs.tsv",
+                  "data/tmp.tsv")
