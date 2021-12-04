@@ -12,13 +12,6 @@ def plot_hist(value_counts, file='plot.png', title=[], inches=(16, 9)):
     value_counts.plot(kind='bar')
     plt.savefig(file)
 
-def mismatch_positions(seq_a, seq_b):
-    assert len(seq_a) == len(seq_b)
-    filter_a = (seq_a != '.') & (seq_a != 'N')
-    filter_b = (seq_b != '.') & (seq_b != 'N')
-    compare = seq_a != seq_b
-    return np.where(filter_a & filter_b & compare)[0]
-
 def load_multiple_sets(db_paths: list, columns: list):
     sets = [pd.read_csv(x, sep='\t', usecols=columns) for x in db_paths]
     return pd.concat(sets)
