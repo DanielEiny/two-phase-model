@@ -80,7 +80,7 @@ def count_mutations(input_file_path, output_file_path):
     repertoire = repertoire.assign(mutations_synonymous=mutations_synonymous)
 
     # --- Mark full synonymous mutations --- #
-    print(f'{time.ctime()} | {sample_name}: Mark synonymous mutations ')
+    print(f'{time.ctime()} | {sample_name}: Mark full synonymous mutations ')
     mutations_full_synonymous = repertoire.apply(lambda x: filter_full_synonymous(x.ancestor_alignment,
                                                                                   x.mutations_all),
                                                                                   axis=1)
