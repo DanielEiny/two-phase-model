@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-plt.style.use('Solarize_Light2')
+from python_code.definitions import imgt_regions
 
 
 def plot_hist(value_counts, file='plot.png', title=[], inches=(16, 9)):
@@ -13,7 +13,8 @@ def plot_hist(value_counts, file='plot.png', title=[], inches=(16, 9)):
     plt.savefig(file)
 
 def load_multiple_sets(db_paths: list, columns: list):
-    sets = [pd.read_csv(x, sep='\t', usecols=columns) for x in db_paths]
+    # sets = [pd.read_csv(x, sep='\t', usecols=columns) for x in db_paths]
+    sets = [pd.read_feather(x.replace('tsv', 'feather'), columns=columns) for x in db_paths]
     return pd.concat(sets)
 
 def clone_size_distribution(list_of_sets, 
@@ -33,3 +34,26 @@ def clone_size_distribution(list_of_sets,
        stacked =  pd.concat([stacked, clone_sizes])
 
     return stacked.value_counts()
+
+
+def mutability_by_position(dataset):
+    mutations_list = dataset.mutations_all[dataset.ancestor_origin != "GERMLINE"].to_list()
+    mutations_list = [item for sublist in mutations_list for item in sublist]
+    mutations_per_position = pd.value_counts(mutations_list).sort_index()
+    mutations_per_position = mutations_per_position[mutations_per_position.index < 450]
+    mutations_per_position_aligned = pd.Series(index=range(450), data=0)
+    mutations_per_position_aligned[mutations_per_position.index] = mutations_per_position
+    mutations_per_position_aligned.plot(kind="bar")
+    plt.locator_params(nbins=49, axis='x')
+    plt.locator_params(nbins=10, axis='y')
+    plt.axvspan(*imgt_regions['CDR1'], facecolor='gray', alpha=0.5)
+    plt.axvspan(*imgt_regions['CDR2'], facecolor='gray', alpha=0.5)
+
+
+    
+def mutability_by_nucleotide(dataset):
+    nucleotide_lists = dataset.apply(lambda row: [row.ancestor_alignment[pos] for pos in row.mutations_all],
+                                     axis=1)
+    all_nucleotides = [item for sublist in nucleotide_lists for item in sublist]
+    counts = pd.value_counts(all_nucleotides)
+    counts.plot(kind='pie')

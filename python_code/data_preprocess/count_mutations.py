@@ -10,10 +10,11 @@ def mismatch_positions(seq_a, seq_b):
     assert len(seq_a) == len(seq_b)
     seq_a = np.array(list(seq_a))
     seq_b = np.array(list(seq_b))
-    filter_a = (seq_a != '.') & (seq_a != 'N')
-    filter_b = (seq_b != '.') & (seq_b != 'N')
+    filter_a = (seq_a != '.') & (seq_a != '-') & (seq_a != 'N')
+    filter_b = (seq_b != '.') & (seq_b != '-') & (seq_b != 'N')
     compare = seq_a != seq_b
-    return np.where(filter_a & filter_b & compare)[0]
+    position = np.where(filter_a & filter_b & compare)[0]
+    return list(position.astype('int32'))
 
 def is_synonymous(codon_a, codon_b):
     for symbol in codon_a + codon_b:
@@ -88,7 +89,7 @@ def count_mutations(input_file_path, output_file_path):
 
     # --- Save output --- #
     print(f'{time.ctime()} | {sample_name}: Save output ')
-    repertoire.to_csv(output_file_path, sep='\t', index=False)
+    repertoire.to_feather(output_file_path.replace('tsv', 'feather'))
 
 
 if __name__ == "__main__":

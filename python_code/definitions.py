@@ -16,3 +16,9 @@ codon_table = {'TTT': 'Phe', 'TTC': 'Phe', 'TTA': 'Leu', 'TTG': 'Leu',
                'GCT': 'Ala', 'GCC': 'Ala', 'GCA': 'Ala', 'GCG': 'Ala',
                'GAT': 'Asp', 'GAC': 'Asp', 'GAA': 'Glu', 'GAG': 'Glu',
                'GGT': 'Gly', 'GGC': 'Gly', 'GGA': 'Gly', 'GGG': 'Gly'}
+
+imgt_regions = {'FR1' : (0, 78),
+                'CDR1': (78, 114),
+                'FR2' : (114, 165),
+                'CDR2': (165, 195),
+                'FR3' : (195, 312)}
