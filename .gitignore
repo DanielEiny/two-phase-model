@@ -3,5 +3,7 @@
 .Rhistory
 .idea/
 figures/
+results/
 data/*/
 tmp/
+run*
