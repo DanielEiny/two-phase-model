@@ -1,0 +1,54 @@
+In [417]: dont = enrichment[nucleotides].apply(lambda row: enrichment.columns[row.argmax()] if row.max() < (data.shape[0] * .47) else '%', axis=1)
+
+In [340]: sum(dont != '%')
+Out[340]: 38
+
+
+In [331]: where.sum()
+Out[331]: 69039
+
+
+IGHV3-23*01      211586        IGHV1-18*01          54218
+IGHV4-39*01      121771        IGHV1-18*04           8057
+IGHV4-34*01      108887        IGHV1-2*02            2045
+IGHV1-69*01       89534        IGHV1-46*01            944
+IGHV3-21*01       89193        IGHV1-3*01             755
+IGHV3-30*18       84187        IGHV1-69*01            435
+IGHV3-33*01       78865        IGHV1-8*01             383
+IGHV1-2*02        69249        IGHV3-30*18            259
+IGHV3-15*01       64593        IGHV1-69*02            189
+IGHV4-59*01       64169        IGHV3-33*01            187
+IGHV3-9*01        61952        IGHV1-46*03            159
+IGHV3-7*01        60435        IGHV3-9*01             151
+IGHV1-18*01       59927        IGHV1-69*06            144
+IGHV5-51*01       55596        IGHV1-18*04_G132A      136
+IGHV3-74*01       50864        IGHV1-69*04            133
+IGHV4-31*03       44531        IGHV1-3*04             125
+IGHV3-30-3*01     39190        IGHV1-58*01             83
+IGHV1-46*01       37572        IGHV5-51*01             75
+IGHV2-5*02        36422        IGHV3-30*03             69
+IGHV1-8*01        32258        IGHV1-2*04              64
+
+
+
+
+position_mutability_selected_pos_sym_muts = data.mutations_synonymous.apply(lambda muts: [x for x in muts if x in dont_pos]) 
+position_mutability_selected_pos_sym_muts = pd.value_counts(flatten_list(position_mutability_selected_pos_sym_muts))
+position_mutability_selected_pos_sym_muts /= data.shape[0]
+position_mutability_selected_pos_sym_muts_selected_seqs = data.mutations_synonymous[where].apply(lambda muts: [x for x in muts if x in dont_pos])
+position_mutability_selected_pos_sym_muts_selected_seqs = pd.value_counts(flatten_list(position_mutability_selected_pos_sym_muts_selected_seqs))
+position_mutability_selected_pos_sym_muts = position_mutability_selected_pos_sym_muts.sort_index()
+tmp = position_mutability_selected_pos_sym_muts.copy()
+tmp[:] = 0.0
+tmp[position_mutability_selected_pos_sym_muts_selected_seqs.index] = position_mutability_selected_pos_sym_muts_selected_seqs
+tmp /= where.sum()
+position_mutability_selected_pos_sym_muts
+np.random.choice()
+position_mutability_selected_pos_sym_muts_selected_seqs = tmp.copy()
+random_where = np.random.choice(range(data.shape[0]), where.sum(), replace=False)
+tmp[:] = 0
+position_mutability_selected_pos_sym_muts_random_seqs = data.mutations_synonymous.iloc[random_where].apply(lambda muts: [x for x in muts if x in dont_pos])
+position_mutability_selected_pos_sym_muts_random_seqs = pd.value_counts(flatten_list(position_mutability_selected_pos_sym_muts_random_seqs))
+tmp[position_mutability_selected_pos_sym_muts_random_seqs.index] = position_mutability_selected_pos_sym_muts_random_seqs
+tmp /= where.sum()
+position_mutability_selected_pos_sym_muts_random_seqs = tmp.copy()

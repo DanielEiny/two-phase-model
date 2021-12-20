@@ -69,10 +69,10 @@ def calc_multiprocess(csv_to_append, dataset, anchor_nucleotide, positions_left,
     pool.map(lambda x: calc_test(csv_to_append, motif=x[0], motif_anchor=x[1]),
              motifs)
 
-def calc_loop(csv_to_append, dataset, anchor_nucleotide, positions_left, positions_right):
+def calc_loop(csv_to_append, dataset, anchor_nucleotide, positions_left, positions_right, substitution=[]):
     motifs = list(generate_motifs(anchor_nucleotide, positions_left, positions_right))
     for m in motifs:
-        calc_and_save(csv_to_append, dataset.copy(), motif=m[0], motif_anchor=m[1])
+        calc_and_save(csv_to_append, dataset.copy(), motif=m[0], motif_anchor=m[1], substitution=substitution)
 
 def calc_ambiguity_codes(in_csv, out_csv, anchor_nucleotide, positions_left, positions_right):
     in_table = pd.read_csv(in_csv)
