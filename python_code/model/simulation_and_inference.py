@@ -17,10 +17,6 @@ def simulation_and_inference(dataset):
     tpm.load_state_dict(parameters)
     print(f' *** set model params: {tpm.state_dict()} *** ')
     
-    # --- Load data --- #
-    dataset = pd.read_feather('data/P4/P4_I1_S1_cloned_w_filtered_seqs.feather')
-    dataset = dataset[:10000]
-    
     # --- Simulate mutations --- #
     dataset['simulated_sequence'] = dataset.apply(lambda row: simulation(sequence=row.ancestor_alignment,
                                                                          n_mutations=len(row.mutations_all),
