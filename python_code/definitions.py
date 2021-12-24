@@ -1,4 +1,5 @@
 nucleotides = ['C', 'G', 'A', 'T']
+nucleotides_with_N = ['C', 'G', 'A', 'T', 'N']
 
 uipac_ambiguity_codes = {'A': 'A',
                          'G': 'G',
