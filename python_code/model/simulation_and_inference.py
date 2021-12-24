@@ -13,9 +13,9 @@ def simulation_and_inference(dataset):
     
     # --- Set model params --- #
     parameters = tpm.state_dict()
-    parameters['phase2.replication_prob'] = torch.Tensor([0.3])
+    parameters['phase2.replication_prob'] = torch.tensor([0.5])
     tpm.load_state_dict(parameters)
-    print(f' *** set model params: {tpm.state_dict()} *** ')
+    print(f' *** simulation model params: {tpm.state_dict()["phase2.replication_prob"]} *** ')
     
     # --- Simulate mutations --- #
     dataset['simulated_sequence'] = dataset.apply(lambda row: simulation(sequence=row.ancestor_alignment,
@@ -24,11 +24,11 @@ def simulation_and_inference(dataset):
     
     # --- Reset model params --- #
     parameters['phase2.replication_prob'] = torch.rand(1)
-    parameters['phase2.replication_prob'] = torch.Tensor([0.3])
+    parameters['phase2.replication_prob'] = torch.tensor([0.9])
     tpm.load_state_dict(parameters)
-    print(f' *** random model params: {tpm.state_dict()} *** ')
+    print(f' *** inference initials model params: {tpm.state_dict()["phase2.replication_prob"]} *** ')
     
     
     # --- Infer model params --- #
     inference(tpm, dataset, ancestor_column='ancestor_alignment', descendant_column='simulated_sequence')
-    print(f' *** estimated model params: {tpm.state_dict()} *** ')
+    print(f' *** estimated model params: {tpm.state_dict()["phase2.replication_prob"]} *** ')

@@ -20,15 +20,20 @@ class Phase2(nn.Module):
     def __init__(self):
         super().__init__()
         self.replication_prob = nn.Parameter(torch.rand(1))
-        self.ber_short_patch_prob = nn.Parameter(torch.rand(1))
-        self.ber_long_patch_prob = nn.Parameter(torch.rand(1))
-        self.mmr_prob = 1 - (self.ber_short_patch_prob + self.ber_long_patch_prob)
+        self.ung_prob = nn.Parameter(torch.tensor([1.]), requires_grad=False)  # torch.rand(1))
+        self.mmr_prob = nn.Parameter(1 - self.ung_prob)
+        self.short_patch_ber_prob = nn.Parameter(torch.tensor([1.]), requires_grad=False)  # torch.rand(1))
+        self.long_patch_ber_prob = nn.Parameter(1 - self.short_patch_ber_prob)
 
     def forward(self, sequence, targeting_probs_phase1):
         replication_probs = targeting_probs_phase1 * self.replication_prob
-        ber_or_mmr_probs = targeting_probs_phase1 * (1 - self.replication_prob)
+        error_prone_repair_probs = targeting_probs_phase1 * (1 - self.replication_prob) 
+        ung_probs = error_prone_repair_probs * self.ung_prob
+        mmr_probs = error_prone_repair_probs * self.mmr_prob
+        short_patch_ber_probs = ung_probs * self.short_patch_ber_prob
+        long_patch_ber_probs = ung_probs * self.long_patch_ber_prob
 
-        return torch.vstack([replication_probs, ber_or_mmr_probs])
+        return torch.vstack([replication_probs, short_patch_ber_probs])
 
 
 class TwoPhaseModel(nn.Module):
