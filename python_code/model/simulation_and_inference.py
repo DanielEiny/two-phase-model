@@ -13,6 +13,7 @@ def simulation_and_inference(dataset):
     
     # --- Set model params --- #
     parameters = tpm.state_dict()
+    parameters['phase1.motifs_prob'] = torch.tensor([0.2, 0.7, 0.1])
     parameters['phase2.replication_prob'] = torch.tensor([0.5])
     tpm.load_state_dict(parameters)
     print(f' *** simulation model params: {tpm.state_dict()["phase2.replication_prob"]} *** ')
@@ -23,7 +24,7 @@ def simulation_and_inference(dataset):
                                                                          model=tpm), axis=1)
     
     # --- Reset model params --- #
-    parameters['phase2.replication_prob'] = torch.rand(1)
+    parameters['phase1.motifs_prob'] = torch.tensor([0.3, 0.3, 0.4])
     parameters['phase2.replication_prob'] = torch.tensor([0.9])
     tpm.load_state_dict(parameters)
     print(f' *** inference initials model params: {tpm.state_dict()["phase2.replication_prob"]} *** ')
