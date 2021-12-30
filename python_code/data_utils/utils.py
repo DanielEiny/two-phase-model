@@ -4,6 +4,10 @@ import pandas as pd
 from python_code.definitions import imgt_regions
 
 
+def to_numpy(line):
+    return np.array([float(x) for x in line.strip('[]').split(' ') if x])
+
+
 def plot_hist(value_counts, file='plot.png', title=[], inches=(16, 9)):
     plt.clf()
     plt.figure(figsize=inches)

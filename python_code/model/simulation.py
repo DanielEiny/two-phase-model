@@ -1,9 +1,11 @@
 import numpy as np
 import torch
 
+from python_code.definitions import nucleotides
+
+replication_substitution = {'C': 'T', 'G': 'A'}
 
 def simulation(sequence, n_mutations, model):
-
     # --- Get probabilities --- #
     with torch.no_grad():
         targeting_probs, replication_probs = model(sequence)
@@ -17,9 +19,10 @@ def simulation(sequence, n_mutations, model):
     for position in targets:
         replication = np.random.binomial(1, replication_probs[position])
         if replication:  
-           mutated_sequence[position] = 'T'
+           mutated_sequence[position] = replication_substitution[sequence[position]]
         else:
-           mutated_sequence[position] = np.random.choice(['G', 'T', 'A'])
+           possible_substitutions = list(set(nucleotides) - set(sequence[position]))
+           mutated_sequence[position] = np.random.choice(possible_substitutions)
 
     mutated_sequence = ''.join(mutated_sequence)
     return mutated_sequence
