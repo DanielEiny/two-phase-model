@@ -51,9 +51,9 @@ def probability_domain_penalty(prob):
 def probability_sum_penalty(probs):
     return (probs.sum() - 1) ** 2
 
-def inference(model, data, ancestor_column='ancestor_alignment', descendant_column='sequence_alinment'):
+def inference(model, data, ancestor_column='ancestor_alignment', descendant_column='sequence_alinment', log_postfix=''):
     now = datetime.now().strftime("%d_%m_%Y-%H:%M:%S")
-    log_dir = os.path.join(log_path, now)
+    log_dir = os.path.join(log_path, now + log_postfix)
     os.makedirs(log_dir)
     log_csv = os.path.join(log_dir, 'log.csv')
 

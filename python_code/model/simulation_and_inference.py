@@ -7,7 +7,7 @@ from python_code.model.inference import inference
 
 
 
-def simulation_and_inference(dataset):
+def simulation_and_inference(dataset, log_postfix=''):
     # --- Init model --- #
     tpm = TwoPhaseModel()
     
@@ -17,6 +17,7 @@ def simulation_and_inference(dataset):
     parameters['phase2.replication_prob'] = torch.tensor([0.5])
     parameters['phase2.short_patch_ber_prob'] = torch.tensor([0.2])
     parameters['phase2.lp_ber.profile'] = torch.concat([torch.zeros(11), torch.ones(9) / 9, torch.zeros(11)])
+    parameters['phase2.lp_ber.motifs_prob'] = torch.tensor([0.15, 0.15, 0.30, 0.40])
     tpm.load_state_dict(parameters)
     
     # --- Simulate mutations --- #
@@ -28,4 +29,4 @@ def simulation_and_inference(dataset):
     tpm = TwoPhaseModel()
     
     # --- Infer model params --- #
-    inference(tpm, dataset, ancestor_column='ancestor_alignment', descendant_column='simulated_sequence')
+    inference(tpm, dataset, ancestor_column='ancestor_alignment', descendant_column='simulated_sequence', log_postfix=log_postfix)
