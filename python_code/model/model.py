@@ -1,3 +1,4 @@
+import os
 import re
 import pandas as pd
 import torch
@@ -7,27 +8,60 @@ from torch.nn import functional as F
 from python_code.model.model_utils import motif_ambiguity_to_regex
 from python_code.model.model_utils import assign_motif_probs
 from python_code.model.model_utils import normalize
+from python_code.definitions import nucleotides
 
 
 torch.set_default_dtype(torch.float64)
 
-motifs_and_anchors_aid = {'C': 0, 'WRC': 2, 'SYC': 2, 'G': 0, 'GYW': 0, 'GRS' : 0}
-motifs_and_anchors_lp_ber = {'C': 0, 'G': 0, 'A': 0, 'T' : 0}
+MODEL_VERSION = os.environ['MODEL_VERSION']  # 'fivemers' or 'simple'
+
+if MODEL_VERSION == 'simple':
+    motifs_and_anchors_aid = {'C': 0, 'WRC': 2, 'SYC': 2, 'G': 0, 'GYW': 0, 'GRS' : 0}
+    motifs_and_anchors_lp_ber = {'C': 0, 'G': 0, 'A': 0, 'T' : 0, 'WA': 1, 'TW': 1}
+    motifs_and_anchors_mmr = {'C': 0, 'G': 0, 'A': 0, 'T' : 0}
+
+elif MODEL_VERSION == 'fivemers':
+    motifs = pd.read_csv('results/motifs/mutability/fivmers-mutability.csv')
+    # NOTE - in this csv the order is AGCT
+    motifs = motifs[motifs.motif.apply(lambda x: x[2] != 'N')]
+    motifs = motifs.motif.values.tolist()
+    anchor_pos = 2
+
+    motifs_and_anchors = {m: anchor_pos for m in motifs}
+    motifs_and_anchors_aid = motifs_and_anchors
+    motifs_and_anchors_lp_ber = motifs_and_anchors
+    motifs_and_anchors_mmr = motifs_and_anchors
+
+
+class MisMatchRepair(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.motifs = motifs_and_anchors_mmr.keys()
+        self.motifs_anchor = motifs_and_anchors_mmr
+        self.motifs_regex = {m: re.compile(motif_ambiguity_to_regex(m)) for m in self.motifs}
+        self.motifs_prob = nn.Parameter(normalize(torch.ones(len(self.motifs))))
+        self.motifs_idx = {m: i for m, i in zip(self.motifs, range(len(self.motifs)))}
+        
+    def forward(self, sequence, mmr_centers_probs):
+        mmr_motif_probs = assign_motif_probs(sequence, 
+                                             self.motifs, 
+                                             self.motifs_anchor, 
+                                             self.motifs_regex, 
+                                             self.motifs_idx, 
+                                             self.motifs_prob)
+        mmr_motif_probs = normalize(mmr_motif_probs)
+        return mmr_motif_probs * mmr_centers_probs.sum()
 
 
 class LongPatchBer(nn.Module):
     def __init__(self):
         super().__init__()
-        profile = torch.rand(31)
-        profile = normalize(profile)
-        self.profile = nn.Parameter(profile) 
+        self.profile = nn.Parameter(normalize(torch.ones(31))) 
 
         self.motifs = motifs_and_anchors_lp_ber.keys()
         self.motifs_anchor = motifs_and_anchors_lp_ber
         self.motifs_regex = {m: re.compile(motif_ambiguity_to_regex(m)) for m in self.motifs}
-        self.motifs_prob = torch.rand(len(self.motifs))
-        self.motifs_prob = normalize(self.motifs_prob)
-        self.motifs_prob = nn.Parameter(self.motifs_prob) 
+        self.motifs_prob = nn.Parameter(normalize(torch.ones(len(self.motifs))))
         self.motifs_idx = {m: i for m, i in zip(self.motifs, range(len(self.motifs)))}
 
         self.forward = self.forward_vectorized
@@ -89,9 +123,7 @@ class Phase1(nn.Module):
         self.motifs = motifs_and_anchors_aid.keys()
         self.motifs_anchor = motifs_and_anchors_aid
         self.motifs_regex = {m: re.compile(motif_ambiguity_to_regex(m)) for m in self.motifs}
-        self.motifs_prob = torch.rand(len(self.motifs))
-        self.motifs_prob = normalize(self.motifs_prob)
-        self.motifs_prob = nn.Parameter(self.motifs_prob) 
+        self.motifs_prob = nn.Parameter(normalize(torch.ones(len(self.motifs))))
         self.motifs_idx = {m: i for m, i in zip(self.motifs, range(len(self.motifs)))}
 
     def forward(self, sequence):
@@ -111,10 +143,11 @@ class Phase2(nn.Module):
     def __init__(self):
         super().__init__()
         self.lp_ber = LongPatchBer()
+        self.mmr = MisMatchRepair()
 
-        self.replication_prob = nn.Parameter(torch.rand(1))
-        self.ung_prob = nn.Parameter(torch.tensor([1.]), requires_grad=False)  # torch.rand(1))
-        self.short_patch_ber_prob = nn.Parameter(torch.rand(1))
+        self.replication_prob = nn.Parameter(torch.tensor([.5]))
+        self.ung_prob = nn.Parameter(torch.tensor([1.]), requires_grad=False)
+        self.short_patch_ber_prob = nn.Parameter(torch.tensor([.5]))
 
     def forward(self, sequence, targeting_probs_phase1):
         replication_probs = targeting_probs_phase1 * self.replication_prob
@@ -124,7 +157,7 @@ class Phase2(nn.Module):
         short_patch_ber_probs = ung_probs * self.short_patch_ber_prob
         long_patch_ber_probs = self.lp_ber(sequence, ung_probs * (1 - self.short_patch_ber_prob))
 
-        mmr_probs = error_prone_repair_probs * (1 - self.ung_prob)
+        mmr_probs = self.mmr(sequence, error_prone_repair_probs * (1 - self.ung_prob))
 
         targeting_probs = replication_probs + mmr_probs + short_patch_ber_probs + long_patch_ber_probs
         replication_probs = torch.zeros(len(sequence))

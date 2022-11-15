@@ -1,12 +1,18 @@
 import numpy as np
 import pandas as pd
 #import matplotlib.pyplot as plt
-from python_code.definitions import imgt_regions
+from python_code.definitions import imgt_regions, nucleotides, codon_table
 
 
 def to_numpy(line):
     return np.array([float(x) for x in line.strip('[]').split(' ') if x])
 
+def is_synonymous(codon_a, codon_b):
+    for symbol in codon_a + codon_b:
+        if symbol not in nucleotides:
+            return False
+
+    return codon_table[codon_a] == codon_table[codon_b]
 
 def plot_hist(value_counts, file='plot.png', title=[], inches=(16, 9)):
     plt.clf()
@@ -18,7 +24,12 @@ def plot_hist(value_counts, file='plot.png', title=[], inches=(16, 9)):
 
 def load_multiple_sets(db_paths: list, columns: list):
     # sets = [pd.read_csv(x, sep='\t', usecols=columns) for x in db_paths]
-    sets = [pd.read_feather(x.replace('tsv', 'feather'), columns=columns) for x in db_paths]
+
+    sets = []
+    for db in db_paths:
+        print(f'loading db: {db}')
+        sets.append(pd.read_feather(db.replace('tsv', 'feather'), columns=columns))
+
     return pd.concat(sets)
 
 def clone_size_distribution(list_of_sets, 
