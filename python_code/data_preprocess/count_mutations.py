@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 from python_code.definitions import *
+from python_code.data_utils.utils import is_synonymous
 
 
 def mismatch_positions(seq_a, seq_b):
@@ -16,17 +17,12 @@ def mismatch_positions(seq_a, seq_b):
     position = np.where(filter_a & filter_b & compare)[0]
     return list(position.astype('int32'))
 
-def is_synonymous(codon_a, codon_b):
-    for symbol in codon_a + codon_b:
-        if symbol not in nucleotides:
-            return False
-
-    return codon_table[codon_a] == codon_table[codon_b]
-
 def filter_synonymous(original_sequence, mutated_sequence, mutations):
     synonymous_mutations = []
     for pos in mutations:
         reading_frame_pos = (pos // 3) * 3
+        if reading_frame_pos + 3 > len(original_sequence):
+            continue
         codon_a = original_sequence[reading_frame_pos:reading_frame_pos + 3]
         codon_b = codon_a[:pos % 3] + mutated_sequence[pos] + codon_a[pos % 3 + 1:]
         if is_synonymous(codon_a, codon_b):
