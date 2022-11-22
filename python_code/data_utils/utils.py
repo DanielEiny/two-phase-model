@@ -22,7 +22,7 @@ def plot_hist(value_counts, file='plot.png', title=[], inches=(16, 9)):
     value_counts.plot(kind='bar')
     plt.savefig(file)
 
-def load_multiple_sets(db_paths: list, columns: list):
+def load_multiple_sets(db_paths: list, columns: list = None):
     # sets = [pd.read_csv(x, sep='\t', usecols=columns) for x in db_paths]
 
     sets = []
