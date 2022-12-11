@@ -28,7 +28,7 @@ def simulation_and_inference(dataset, only_synonymous=False, log_postfix=''):
 
     elif MODEL_VERSION == 'fivemers':
         parameters['phase1.motifs_prob'] = normalize(torch.concat([torch.zeros(625), torch.ones(1250), torch.zeros(625)]))
-        parameters['phase2.replication_prob'] = torch.tensor([0.5])
+        parameters['phase2.replication_prob'] = torch.tensor([0.35])
         parameters['phase2.short_patch_ber_prob'] = torch.tensor([0.2])
         parameters['phase2.lp_ber.profile'] = normalize(torch.concat([torch.zeros(11), torch.ones(9), torch.zeros(11)]))
         parameters['phase2.lp_ber.motifs_prob'] = normalize(torch.concat([torch.arange(625), torch.zeros(1250) + 1, torch.arange(625)]))

@@ -10,7 +10,7 @@ from python_code.model.inference_funcs import calc_sequence_likelihood
 from python_code.model.model_utils import normalize, probablize
 
  
-log_path = 'results/model/log'
+log_path = 'results/model/convergence_test/'
 
 # --- Hyperparameters --- #
 schedule_steps = 5
@@ -44,8 +44,9 @@ def probability_sum_penalty(probs):
     return penalty
 
 def inference(model, data, ancestor_column='ancestor_alignment', descendant_column='sequence_alinment', only_synonymous=False, log_postfix=''):
-    now = datetime.now().strftime("%d_%m_%Y-%H:%M:%S")
+    now = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
     log_dir = os.path.join(log_path, now + log_postfix)
+    print(f' > --- inference log dir: {log_dir} --- < ')
     os.makedirs(log_dir)
     log_csv = os.path.join(log_dir, 'log.csv')
 

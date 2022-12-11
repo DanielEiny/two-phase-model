@@ -3,12 +3,16 @@ import pandas as pd
 import numpy as np
 import imageio
 import glob
+import os
 
 from python_code.data_utils.utils import to_numpy
 
 def create_gif():
-    run_id = '11_11_2022-00:02:33_simple_alldata_ADAM_bs50_lr3'
-    df = pd.read_csv(f'results/model/log/{run_id}/log.csv')
+    old_pngs = glob.glob('results/model/convergence_gif/*.png')
+    [os.remove(x) for x in old_pngs]
+
+    run_id = '28_11_2022-18_34_48_model_version-simple_n_sequences-10000'
+    df = pd.read_csv(f'results/model/convergence_test/{run_id}/log.csv')
     profile = df['phase2.lp_ber.profile'].apply(to_numpy)
 
     step = 1000
@@ -23,7 +27,7 @@ def create_gif():
         plt.savefig('results/model/convergence_gif/' + str(i).zfill(4) + '.png')
         plt.close()
 
-    files = glob.glob('results/model/convergence_gif/*.png')
+    files = sorted(glob.glob('results/model/convergence_gif/*.png'))
     with imageio.get_writer(f'results/model/convergence_gif/{run_id}.gif', mode='I') as writer:
         for filename in files:
             im = imageio.imread(filename)
