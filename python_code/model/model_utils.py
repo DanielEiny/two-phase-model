@@ -1,4 +1,6 @@
 from itertools import product
+import numpy as np
+import pandas as pd
 import torch
 import torch.nn.functional as F
 
@@ -92,3 +94,26 @@ def count_possible_synonymous_mutations(sequence):
 
     return error_repair, replication
 
+def quasi_random_fivemer_probs(save_path, ignore=[]):
+    factor_min = 0.5
+    factor_max = 2
+
+    motifs = pd.read_csv('results/motifs/mutability/fivmers-mutability.csv')
+
+    ignore.append('N')
+    motifs = motifs[motifs.motif.apply(lambda x: x[2] not in ignore)]
+
+    mutability = motifs.mutability.values
+
+    #if 'A' in ignore:
+    #    mutability[:625] = 0 
+    #if 'T' in ignore:
+    #    mutability[1875:] = 0
+
+    factor = np.random.uniform(factor_min, factor_max, len(mutability))
+    probs = mutability * factor
+    probs = probs / probs.sum()
+
+    np.save(save_path, probs)
+
+    return torch.tensor(probs, dtype=torch.float32)

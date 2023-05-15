@@ -21,16 +21,18 @@ if MODEL_VERSION == 'simple':
     motifs_and_anchors_mmr = {'C': 0, 'G': 0, 'A': 0, 'T' : 0}
 
 elif MODEL_VERSION == 'fivemers':
+    anchor_pos = 2
     motifs = pd.read_csv('results/motifs/mutability/fivmers-mutability.csv')
     # NOTE - in this csv the order is AGCT
-    motifs = motifs[motifs.motif.apply(lambda x: x[2] != 'N')]
-    motifs = motifs.motif.values.tolist()
-    anchor_pos = 2
+    motifs = motifs[motifs.motif.apply(lambda x: x[anchor_pos] != 'N')]
 
-    motifs_and_anchors = {m: anchor_pos for m in motifs}
-    motifs_and_anchors_aid = motifs_and_anchors
+    motifs_and_anchors = {m: anchor_pos for m in motifs.motif.values.tolist()}
     motifs_and_anchors_lp_ber = motifs_and_anchors
     motifs_and_anchors_mmr = motifs_and_anchors
+
+    motifs = motifs[motifs.motif.apply(lambda x: x[anchor_pos] not in ['A', 'T'])]
+    motifs_and_anchors = {m: anchor_pos for m in motifs.motif.values.tolist()}
+    motifs_and_anchors_aid = motifs_and_anchors
 
 
 class MisMatchRepair(nn.Module):
