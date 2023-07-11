@@ -2,7 +2,6 @@ import pandas as pd
 
 from python_code.definitions import nucleotides
 from python_code.data_utils.utils import load_multiple_sets
-from python_code.data_exploration.motifs import calc_multiprocess
 from python_code.data_exploration.motifs import calc_loop
 
 

@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 
-logfile = 'results/model/log/28_07_2022-10:41:26_fivmers_alldata_ADAM_bs50_lr4/log.csv'
-logfile = 'results/model/log/29_07_2022-12:07:37_fivmers_alldata_ADAM_bs50_lr3/log.csv'
+logfile = 'results/model/convergence_test/30_11_2022-23_39_56_model_version-fivemers_n_sequences-100000/log.csv'
 df = pd.read_csv(logfile)
 
 

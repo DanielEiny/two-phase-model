@@ -22,7 +22,7 @@ if MODEL_VERSION == 'simple':
 
 elif MODEL_VERSION == 'fivemers':
     anchor_pos = 2
-    motifs = pd.read_csv('results/motifs/mutability/fivmers-mutability.csv')
+    motifs = pd.read_csv('results/motifs/mutability/fivmers-mutability-no-N.csv')
     # NOTE - in this csv the order is AGCT
     motifs = motifs[motifs.motif.apply(lambda x: x[anchor_pos] != 'N')]
 

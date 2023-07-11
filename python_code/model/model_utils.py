@@ -98,7 +98,7 @@ def quasi_random_fivemer_probs(save_path, ignore=[]):
     factor_min = 0.5
     factor_max = 2
 
-    motifs = pd.read_csv('results/motifs/mutability/fivmers-mutability.csv')
+    motifs = pd.read_csv('results/motifs/mutability/fivmers-mutability-no-N.csv')
 
     ignore.append('N')
     motifs = motifs[motifs.motif.apply(lambda x: x[2] not in ignore)]

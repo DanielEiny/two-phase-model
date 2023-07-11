@@ -11,11 +11,11 @@ def create_gif():
     old_pngs = glob.glob('results/model/convergence_gif/*.png')
     [os.remove(x) for x in old_pngs]
 
-    run_id = '28_11_2022-18_34_48_model_version-simple_n_sequences-10000'
+    run_id = '02_12_2022-14_19_30_model_version-fivemers_n_sequences-1000000'
     df = pd.read_csv(f'results/model/convergence_test/{run_id}/log.csv')
     profile = df['phase2.lp_ber.profile'].apply(to_numpy)
 
-    step = 1000
+    step = 10000
     for i, p in enumerate(profile[::step]):
         print(f'{i} --> {i * step}')
         plt.figure(figsize=(16, 9))
