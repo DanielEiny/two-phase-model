@@ -6,7 +6,7 @@ from tqdm.contrib.concurrent import process_map
 from python_code.definitions import nucleotides, uipac_ambiguity_codes, imgt_regions
 
 
-def create_frequent_motif_vocab(min_freq, ignore=[]):
+def create_frequent_motif_vocab_old_version(min_freq, ignore=[]):
     steps = []
     ignore.append('N')
     motifs = pd.read_csv('results/motifs/mutability/fivmers-mutability-no-N.csv')
@@ -90,51 +90,43 @@ def calc_merge_freq(args):
 all_possible_motifs = [''.join(x)for x in product(uipac_ambiguity_codes.keys(), repeat=5)]
 
 
-def create2(target_min_freq, debug=False):
-    interesting_freqs = np.arange(0.0, 0.0041, 0.00025)
+def create_frequent_motif_vocab(target_min_freq, debug=False):
     vocab = pd.read_csv('results/motifs/mutability/fivmers-mutability-no-N.csv')
     vocab['freq'] = vocab.motif_count / vocab.motif_count.sum()
     vocab = vocab.drop(['motif_count', 'mutation_count', 'mutability'], axis=1)
 
-    vocab = pd.read_csv('results/motifs/merged_vocabularies/min_freq_0.0007598382408483_size_363.csv')
-#
     possible_merges = list(set(all_possible_motifs) - set(vocab.motif))
-    with open('results/motifs/merged_vocabularies/possible_merges.pkl', 'rb') as f:
-        possible_merges = pickle.load(f)
-#
+ 
     original_vocab_len = len(vocab)
     steps = []
-#
+ 
     while vocab.freq.min() < target_min_freq and len(steps) < original_vocab_len:
-#
+ 
         vocab_symbols = vocab.motif.to_list()
         vocab_freqs = vocab.freq.to_numpy()
         args = [(vocab_symbols, vocab_freqs, ms) for ms in possible_merges]
         possible_merges_freq = process_map(calc_merge_freq, args, max_workers=40, chunksize=1)
         lowest_freq_merge_idx =  np.argmin(possible_merges_freq)
-#
+
         chosen_merge = possible_merges[lowest_freq_merge_idx]
         contained = [contains(chosen_merge, x) for x in vocab_symbols]
         merge_freq = vocab.freq[contained].sum()
         
         remove = vocab.motif[contained].to_list() + [chosen_merge]
         possible_merges = [x for x in possible_merges if x not in remove]
-#
+ 
         if debug:
             steps.append({'merge': chosen_merge, 'to_drop': vocab.motif[contained]})
         else:
             steps.append(None)
-#
+ 
         vocab = vocab[~np.array(contained)]
         vocab = vocab.append({'motif': chosen_merge, 'freq': merge_freq}, ignore_index=True)
-#
-        # if vocab.freq.min() > interesting_freqs[0]:
-        #     vocab.to_csv(path_or_buf=f'results/motifs/merged_vocabularies/min_freq_{interesting_freqs[0]}_size_{len(vocab)}.csv', index=False)
-        #     interesting_freqs = interesting_freqs[1:]
-#
+
         vocab.to_csv(path_or_buf=f'results/motifs/merged_vocabularies/min_freq_{vocab.freq.min()}_size_{len(vocab)}.csv', index=False)
         with open('results/motifs/merged_vocabularies/possible_merges.pkl', 'wb') as f:
             pickle.dump(possible_merges, f)
+
     return vocab, steps
 
-create2(target_min_freq=0.02)
+create_frequent_motif_vocab(target_min_freq=0.2)
