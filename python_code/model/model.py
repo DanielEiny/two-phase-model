@@ -1,5 +1,6 @@
 import os
-import re
+import regex as re
+import glob
 import pandas as pd
 import torch
 from torch import nn
@@ -34,6 +35,23 @@ elif MODEL_VERSION == 'fivemers':
     motifs_and_anchors = {m: anchor_pos for m in motifs.motif.values.tolist()}
     motifs_and_anchors_aid = motifs_and_anchors
 
+
+elif MODEL_VERSION.count('merged_vocab'):
+    anchor_pos = 2
+    vocab_size = int(MODEL_VERSION.split('size_')[1])
+
+    phase2_vocab_size = int(vocab_size / 2)
+    vocab_csv_path = glob.glob(f'results/motifs/merged_vocabularies_by_mutations_freq/*_size_{phase2_vocab_size}.csv')[0]
+    motifs = pd.read_csv(vocab_csv_path)
+
+    motifs_and_anchors = {m: anchor_pos for m in motifs.motif.values.tolist()}
+    motifs_and_anchors_lp_ber = motifs_and_anchors
+    motifs_and_anchors_mmr = motifs_and_anchors
+
+    vocab_csv_path = glob.glob(f'results/motifs/merged_vocabularies_by_mutations_freq_only_CG/*_size_{vocab_size}.csv')[0]
+    motifs = pd.read_csv(vocab_csv_path)
+
+    motifs_and_anchors_aid = {m: anchor_pos for m in motifs.motif.values.tolist()}
 
 class MisMatchRepair(nn.Module):
     def __init__(self):
@@ -136,6 +154,9 @@ class Phase1(nn.Module):
                                              self.motifs_regex, 
                                              self.motifs_idx, 
                                              self.motifs_prob)
+        # Allow targting of only C/G
+        not_c_or_g = [i for i, x in enumerate(sequence) if x not in ['C', 'G']]
+        targeting_probs[not_c_or_g] = 0.0
 
         # Normalize
         targeting_probs = normalize(targeting_probs)

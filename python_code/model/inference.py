@@ -10,7 +10,7 @@ from python_code.model.inference_funcs import calc_sequence_likelihood
 from python_code.model.model_utils import normalize, probablize
 
  
-log_path = 'results/model/convergence_test/'
+log_path = 'results/model/convergence_test_by_mutations_freq_fix_aid_remove_ambiguous/'
 
 # --- Hyperparameters --- #
 schedule_steps = 5
@@ -145,8 +145,4 @@ def inference(model, data, ancestor_column='ancestor_alignment', descendant_colu
                     # Exit loop condition
                     if batch_counter == batches_this_step:
                         break
-
-
-
-
 

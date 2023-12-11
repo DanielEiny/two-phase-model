@@ -3,6 +3,7 @@ import re
 import time
 import numpy as np
 import pandas as pd
+from tqdm import tqdm
 from itertools import product
 from pathos.multiprocessing import ProcessPool
 
@@ -96,6 +97,20 @@ def calc_ambiguity_codes(in_csv, out_csv, anchor_nucleotide, positions_left, pos
         out_table.mutation_count[i] = match_slice.mutation_count.sum()
 
     out_table.to_csv(out_csv, index=False)
+
+def count_mutations_per_motif(data, mutation_column_name):
+    motif_count = pd.read_csv('results/motifs/mutability/fivmers-mutability.csv')
+    motif_count = motif_count.drop(['motif_count'], axis=1)
+    motif_count = motif_count.drop(['mutability'], axis=1)
+    motif_count.mutation_count = 0
+    motif_count = motif_count.set_index('motif')
+
+    for i, row in tqdm(data.iterrows(), total=data.shape[0]):
+        for pos in row[mutation_column_name]:
+            motif = row.ancestor_alignment[pos-2:pos+3]
+            motif_count.mutation_count[motif] += 1
+
+    motif_count.to_csv('results/motifs/mutability/fivmers-synonymous_mutations_count.csv')
 
 # TODO: pandas DataFrame parallelism framework, sharing df using namespace
 # https://stackoverflow.com/questions/29748481/how-to-use-pass-by-reference-for-data-frame-in-python-pandas

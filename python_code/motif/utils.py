@@ -91,9 +91,11 @@ all_possible_motifs = [''.join(x)for x in product(uipac_ambiguity_codes.keys(), 
 
 
 def create_frequent_motif_vocab(target_min_freq, debug=False):
-    vocab = pd.read_csv('results/motifs/mutability/fivmers-mutability-no-N.csv')
-    vocab['freq'] = vocab.motif_count / vocab.motif_count.sum()
-    vocab = vocab.drop(['motif_count', 'mutation_count', 'mutability'], axis=1)
+    # vocab = pd.read_csv('results/motifs/mutability/fivmers-mutability-no-N.csv')
+    vocab = pd.read_csv('results/motifs/mutability/fivmers-only_CG-no-N-synonymous_mutations_count.csv')
+    # vocab['freq'] = vocab.motif_count / vocab.motif_count.sum()
+    # vocab = vocab.drop(['motif_count', 'mutation_count', 'mutability'], axis=1)
+    vocab = vocab.drop(['mutation_count'], axis=1)
 
     possible_merges = list(set(all_possible_motifs) - set(vocab.motif))
  
@@ -123,10 +125,10 @@ def create_frequent_motif_vocab(target_min_freq, debug=False):
         vocab = vocab[~np.array(contained)]
         vocab = vocab.append({'motif': chosen_merge, 'freq': merge_freq}, ignore_index=True)
 
-        vocab.to_csv(path_or_buf=f'results/motifs/merged_vocabularies/min_freq_{vocab.freq.min()}_size_{len(vocab)}.csv', index=False)
+        vocab.to_csv(path_or_buf=f'results/motifs/merged_vocabularies_by_mutations_freq_only_CG/min_freq_{vocab.freq.min()}_size_{len(vocab)}.csv', index=False)
         with open('results/motifs/merged_vocabularies/possible_merges.pkl', 'wb') as f:
             pickle.dump(possible_merges, f)
 
     return vocab, steps
 
-create_frequent_motif_vocab(target_min_freq=0.2)
+create_frequent_motif_vocab(target_min_freq=1.0)
