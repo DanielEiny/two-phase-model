@@ -14,8 +14,9 @@ def mismatch_positions(seq_a, seq_b):
     filter_a = (seq_a != '.') & (seq_a != '-') & (seq_a != 'N')
     filter_b = (seq_b != '.') & (seq_b != '-') & (seq_b != 'N')
     compare = seq_a != seq_b
-    position = np.where(filter_a & filter_b & compare)[0]
-    return list(position.astype('int32'))
+    positions = np.where(filter_a & filter_b & compare)[0]
+
+    return list(positions.astype('int32'))
 
 def filter_synonymous(original_sequence, mutated_sequence, mutations):
     synonymous_mutations = []

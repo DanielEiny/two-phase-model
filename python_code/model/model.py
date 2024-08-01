@@ -1,5 +1,6 @@
 import os
-import re
+import regex as re
+import glob
 import pandas as pd
 import torch
 from torch import nn
@@ -35,6 +36,50 @@ elif MODEL_VERSION == 'fivemers':
     motifs_and_anchors_aid = motifs_and_anchors
 
 
+elif MODEL_VERSION.count('merged_vocab'):
+    anchor_pos = 2
+    vocab_size = int(MODEL_VERSION.split('size_')[1])
+
+    phase2_vocab_size = int(vocab_size / 2)
+    # vocab_csv_path = glob.glob(f'results/motifs/merged_vocabularies_by_mutations_freq/*_size_{phase2_vocab_size}.csv')[0]
+    vocab_csv_path = 'results/motifs/tmp_vocab_for_debug.csv'
+    motifs = pd.read_csv(vocab_csv_path)
+
+    motifs_and_anchors = {m: anchor_pos for m in motifs.motif.values.tolist()}
+    motifs_and_anchors_lp_ber = motifs_and_anchors
+    motifs_and_anchors_mmr = motifs_and_anchors
+
+    # vocab_csv_path = glob.glob(f'results/motifs/merged_vocabularies_by_mutations_freq_only_CG/*_size_{vocab_size}.csv')[0]
+    vocab_csv_path = 'results/motifs/tmp_vocab_for_debug_GC.csv'
+    motifs = pd.read_csv(vocab_csv_path)
+
+    motifs_and_anchors_aid = {m: anchor_pos for m in motifs.motif.values.tolist()}
+
+elif MODEL_VERSION.count('v3'):
+    from python_code.model.model_utils import assign_motif_probs_v3 as assign_motif_probs
+
+    anchor_pos = 2
+    vocab_size_CG = int(MODEL_VERSION.split('_')[1])
+    vocab_size_all = int(MODEL_VERSION.split('_')[2])
+
+    vocab_csv_path = glob.glob(f'results/motifs/merged_vocabularies_v3_only_CG/*_size_{vocab_size_CG}.csv')[0]
+    vocab = pd.read_csv(vocab_csv_path)
+    vocab_dict = {r[1].motif: r[1].group_id for r in vocab.iterrows()}
+
+    motifs_and_anchors = vocab_dict
+    motifs_and_anchors_aid = motifs_and_anchors
+    n_params_aid = len(vocab.group_id.unique())
+
+    vocab_csv_path = glob.glob(f'results/motifs/merged_vocabularies_v3_all/*_size_{vocab_size_all}.csv')[0]
+    vocab = pd.read_csv(vocab_csv_path)
+    vocab_dict = {r[1].motif: r[1].group_id for r in vocab.iterrows()}
+
+    motifs_and_anchors = vocab_dict
+    motifs_and_anchors_lp_ber = motifs_and_anchors
+    motifs_and_anchors_mmr = motifs_and_anchors
+    n_params_lp_ber = len(vocab.group_id.unique())
+    n_params_mmr = len(vocab.group_id.unique())
+
 class MisMatchRepair(nn.Module):
     def __init__(self):
         super().__init__()
@@ -43,6 +88,10 @@ class MisMatchRepair(nn.Module):
         self.motifs_regex = {m: re.compile(motif_ambiguity_to_regex(m)) for m in self.motifs}
         self.motifs_prob = nn.Parameter(normalize(torch.ones(len(self.motifs))))
         self.motifs_idx = {m: i for m, i in zip(self.motifs, range(len(self.motifs)))}
+
+        if MODEL_VERSION.count('v3'):
+            self.motifs = motifs_and_anchors_mmr
+            self.motifs_prob = nn.Parameter(normalize(torch.ones(n_params_mmr)))
         
     def forward(self, sequence, mmr_centers_probs):
         mmr_motif_probs = assign_motif_probs(sequence, 
@@ -65,6 +114,10 @@ class LongPatchBer(nn.Module):
         self.motifs_regex = {m: re.compile(motif_ambiguity_to_regex(m)) for m in self.motifs}
         self.motifs_prob = nn.Parameter(normalize(torch.ones(len(self.motifs))))
         self.motifs_idx = {m: i for m, i in zip(self.motifs, range(len(self.motifs)))}
+
+        if MODEL_VERSION.count('v3'):
+            self.motifs = motifs_and_anchors_lp_ber
+            self.motifs_prob = nn.Parameter(normalize(torch.ones(n_params_lp_ber)))
 
         self.forward = self.forward_vectorized
 
@@ -128,6 +181,10 @@ class Phase1(nn.Module):
         self.motifs_prob = nn.Parameter(normalize(torch.ones(len(self.motifs))))
         self.motifs_idx = {m: i for m, i in zip(self.motifs, range(len(self.motifs)))}
 
+        if MODEL_VERSION.count('v3'):
+            self.motifs = motifs_and_anchors_aid
+            self.motifs_prob = nn.Parameter(normalize(torch.ones(n_params_aid)))
+
     def forward(self, sequence):
         # Assign probs to motifs
         targeting_probs = assign_motif_probs(sequence, 
@@ -136,6 +193,10 @@ class Phase1(nn.Module):
                                              self.motifs_regex, 
                                              self.motifs_idx, 
                                              self.motifs_prob)
+        #import ipdb; ipdb.set_trace()
+        # Allow targting of only C/G
+        # not_c_or_g = [i for i, x in enumerate(sequence) if x not in ['C', 'G']]
+        # targeting_probs[not_c_or_g] = 0.0
 
         # Normalize
         targeting_probs = normalize(targeting_probs)

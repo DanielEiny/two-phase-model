@@ -1,4 +1,5 @@
 from itertools import product
+import pickle
 import numpy as np
 import pandas as pd
 import torch
@@ -25,8 +26,20 @@ def assign_motif_probs(sequence, motif_list, anchor_dict, regex_dict, motif_idx_
         offset = anchor_dict[motif]
         regex = regex_dict[motif]
         prob = prob_array[motif_idx_dict[motif]]
-        positions = [match.start() + offset for match in regex.finditer(sequence)]
+        positions = [match.start() + offset for match in regex.finditer(sequence, overlapped=True)]
         assigned_probs[positions] = prob
+
+    return assigned_probs
+
+def assign_motif_probs_v3(sequence, motif_dict, dummy, yummy, wummy, prob_array):
+    assigned_probs = torch.zeros(len(sequence))
+
+    for i in range(2, len(sequence) - 3):
+        motif = sequence[i-2:i+3]
+        if motif in motif_dict.keys():
+            motif_group = motif_dict[motif]
+            prob = prob_array[motif_group]
+            assigned_probs[i] = prob
 
     return assigned_probs
 
@@ -117,3 +130,17 @@ def quasi_random_fivemer_probs(save_path, ignore=[]):
     np.save(save_path, probs)
 
     return torch.tensor(probs, dtype=torch.float32)
+
+def randomize_and_save_params(parameters, save_path):
+    parameters['phase2.replication_prob'] = torch.tensor([0.35])
+    parameters['phase2.short_patch_ber_prob'] = torch.tensor([0.2])
+    parameters['phase2.lp_ber.profile'] = normalize(torch.concat([torch.zeros(11), torch.ones(9), torch.zeros(11)]))
+    for key in parameters:
+        param_len = len(parameters[key])
+        if param_len not in [1, 31]:
+            parameters[key] = normalize(torch.randn(param_len).abs())
+
+    with open(save_path, 'wb') as f:
+        pickle.dump(parameters, f)
+
+    return 

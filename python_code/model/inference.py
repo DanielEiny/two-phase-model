@@ -10,7 +10,11 @@ from python_code.model.inference_funcs import calc_sequence_likelihood
 from python_code.model.model_utils import normalize, probablize
 
  
-log_path = 'results/model/convergence_test/'
+log_path = 'results/model/tpm/vocab_size_50/'
+log_path = 'results/model/tpm/tmp_debug/'
+log_path = 'results/model/convergence_test_by_mutations_freq_fix_aid_remove_ambiguous_correct_vocab/'
+log_path = 'results/model/tpm/v3/99_164/'
+log_path = 'results/model/convergence_test_v3/'
 
 # --- Hyperparameters --- #
 schedule_steps = 5
@@ -43,7 +47,7 @@ def probability_sum_penalty(probs):
     penalty = penalty ** 2
     return penalty
 
-def inference(model, data, ancestor_column='ancestor_alignment', descendant_column='sequence_alinment', only_synonymous=False, log_postfix=''):
+def inference(model, data, ancestor_column='ancestor_alignment', descendant_column='sequence_alinment', only_synonymous=False, log_postfix='', max_iter=np.inf):
     now = datetime.now().strftime("%d_%m_%Y-%H_%M_%S")
     log_dir = os.path.join(log_path, now + log_postfix)
     print(f' > --- inference log dir: {log_dir} --- < ')
@@ -146,7 +150,9 @@ def inference(model, data, ancestor_column='ancestor_alignment', descendant_colu
                     if batch_counter == batches_this_step:
                         break
 
-
-
+                    # Yet another termination condition... quite patch
+                    count = int(np.sum(batches_each_schedule_step[:step_counter]) + batch_counter)
+                    if count > max_iter:
+                        exit()
 
 

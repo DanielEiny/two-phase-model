@@ -18,6 +18,8 @@ paths = all_sets[all_sets.sample_id != 'P4_I19_S1'].path
 #paths = paths[:1]
 dataset = load_multiple_sets(paths, columns_list)
 dataset = dataset[:n_sequences]
+# Filter sequences with too many mutations
+dataset = dataset[dataset.mutations_all.apply(len) < 9]
 dataset.ancestor_alignment = dataset.ancestor_alignment.str.replace('.', 'N')
 
 simulation_and_inference(dataset, only_synonymous=True, log_postfix=f'_model_version-{model_version}_n_sequences-{n_sequences}')

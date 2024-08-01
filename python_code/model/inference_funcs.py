@@ -39,6 +39,11 @@ def calc_sequence_likelihood(ancestor_sequence, descendant_sequence, targeting_p
         possible_synonymous_error_repair, possible_synonymous_replication = count_possible_synonymous_mutations(ancestor_sequence)
         
     for t in targets:
+        # To aviod cases where no cover of motifs to target: 1] N's in fivemer 2] edges of sequence
+        # Apparently this is misscalc... the correct way is to account possible combinations
+        if (targeting_probs[t] == 0) and (('N' in ancestor_sequence[t-2:t+3]) or (t < 2 or t > 310)):
+            continue
+
         likelihood = likelihood + calc_target_likelihood(ancestor_sequence[t], 
                                                          descendant_sequence[t],
                                                          targeting_probs[t],

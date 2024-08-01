@@ -6,11 +6,12 @@ from tqdm import tqdm
 from python_code.model.model import TwoPhaseModel
 from python_code.model.simulation import simulation
 from python_code.model.inference import inference
-from python_code.model.model_utils import normalize, quasi_random_fivemer_probs
+from python_code.model.model_utils import normalize, quasi_random_fivemer_probs, randomize_and_save_params
 
 
 MODEL_VERSION = os.environ['MODEL_VERSION']  # 'fivemers' or 'simple'
-log_path = 'results/model/convergence_test/'
+log_path = 'results/model/convergence_test_by_mutations_freq_fix_aid_remove_ambiguous_correct_vocab/'
+log_path = 'results/model/convergence_test_v3/'
 
 
 def simulation_and_inference(dataset, only_synonymous=False, log_postfix=''):
@@ -36,6 +37,10 @@ def simulation_and_inference(dataset, only_synonymous=False, log_postfix=''):
         parameters['phase2.lp_ber.motifs_prob'] = normalize(torch.concat([torch.arange(625), torch.zeros(1250) + 1, torch.arange(625)]))
         parameters['phase2.lp_ber.motifs_prob'] = quasi_random_fivemer_probs(os.path.join(log_path, log_postfix[1:] + '_phase2_lp_ber_motifs_prob.npy'))
 
+    elif MODEL_VERSION.count('merged_vocab') or MODEL_VERSION.count('v3'):
+        save_path = os.path.join(log_path, f'original_parameters_{log_postfix[1:]}.pkl')
+        randomize_and_save_params(parameters, save_path=save_path)
+
     tpm.load_state_dict(parameters)
     
     # --- Simulate mutations --- #
@@ -52,4 +57,4 @@ def simulation_and_inference(dataset, only_synonymous=False, log_postfix=''):
     #tpm.load_state_dict(torch.load(state_dict_path))
     
     # --- Infer model params --- #
-    inference(tpm, dataset, ancestor_column='ancestor_alignment', descendant_column='simulated_sequence', only_synonymous=only_synonymous, log_postfix=log_postfix)
+    inference(tpm, dataset, ancestor_column='ancestor_alignment', descendant_column='simulated_sequence', only_synonymous=only_synonymous, log_postfix=log_postfix, max_iter=50000)
