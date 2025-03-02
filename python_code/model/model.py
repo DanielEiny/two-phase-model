@@ -41,16 +41,16 @@ elif MODEL_VERSION.count('merged_vocab'):
     vocab_size = int(MODEL_VERSION.split('size_')[1])
 
     phase2_vocab_size = int(vocab_size / 2)
-    # vocab_csv_path = glob.glob(f'results/motifs/merged_vocabularies_by_mutations_freq/*_size_{phase2_vocab_size}.csv')[0]
-    vocab_csv_path = 'results/motifs/tmp_vocab_for_debug.csv'
+    vocab_csv_path = glob.glob(f'results/motifs/merged_vocabularies_by_mutations_freq/*_size_{phase2_vocab_size}.csv')[0]
+    # vocab_csv_path = 'results/motifs/tmp_vocab_for_debug.csv'
     motifs = pd.read_csv(vocab_csv_path)
 
     motifs_and_anchors = {m: anchor_pos for m in motifs.motif.values.tolist()}
     motifs_and_anchors_lp_ber = motifs_and_anchors
     motifs_and_anchors_mmr = motifs_and_anchors
 
-    # vocab_csv_path = glob.glob(f'results/motifs/merged_vocabularies_by_mutations_freq_only_CG/*_size_{vocab_size}.csv')[0]
-    vocab_csv_path = 'results/motifs/tmp_vocab_for_debug_GC.csv'
+    vocab_csv_path = glob.glob(f'results/motifs/merged_vocabularies_by_mutations_freq_only_CG/*_size_{vocab_size}.csv')[0]
+    # vocab_csv_path = 'results/motifs/tmp_vocab_for_debug_GC.csv'
     motifs = pd.read_csv(vocab_csv_path)
 
     motifs_and_anchors_aid = {m: anchor_pos for m in motifs.motif.values.tolist()}

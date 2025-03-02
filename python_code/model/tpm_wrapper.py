@@ -14,6 +14,8 @@ class TPM:
         params = torch.load(params_path)
         self.model.load_state_dict(params)
 
+    def __call__(self, sequence):
+        return self.model(sequence)
 
     def predict(self, sequence):
         targeting_probs = self.model(sequence)[0]

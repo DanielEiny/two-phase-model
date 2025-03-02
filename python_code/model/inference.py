@@ -15,6 +15,8 @@ log_path = 'results/model/tpm/tmp_debug/'
 log_path = 'results/model/convergence_test_by_mutations_freq_fix_aid_remove_ambiguous_correct_vocab/'
 log_path = 'results/model/tpm/v3/99_164/'
 log_path = 'results/model/convergence_test_v3/'
+log_path = 'results/model/convergence_test_recap/'
+# log_path = 'results/model/tpm_tmp_dev/'
 
 # --- Hyperparameters --- #
 schedule_steps = 5

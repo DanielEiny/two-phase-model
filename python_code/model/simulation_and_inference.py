@@ -12,6 +12,8 @@ from python_code.model.model_utils import normalize, quasi_random_fivemer_probs,
 MODEL_VERSION = os.environ['MODEL_VERSION']  # 'fivemers' or 'simple'
 log_path = 'results/model/convergence_test_by_mutations_freq_fix_aid_remove_ambiguous_correct_vocab/'
 log_path = 'results/model/convergence_test_v3/'
+log_path = 'results/model/convergence_test_recap/'
+# log_path = 'results/model/tpm_tmp_dev/'
 
 
 def simulation_and_inference(dataset, only_synonymous=False, log_postfix=''):
@@ -57,4 +59,4 @@ def simulation_and_inference(dataset, only_synonymous=False, log_postfix=''):
     #tpm.load_state_dict(torch.load(state_dict_path))
     
     # --- Infer model params --- #
-    inference(tpm, dataset, ancestor_column='ancestor_alignment', descendant_column='simulated_sequence', only_synonymous=only_synonymous, log_postfix=log_postfix, max_iter=50000)
+    inference(tpm, dataset, ancestor_column='ancestor_alignment', descendant_column='simulated_sequence', only_synonymous=only_synonymous, log_postfix=log_postfix, max_iter=500000)

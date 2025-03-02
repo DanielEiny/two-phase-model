@@ -67,7 +67,7 @@ def generate_plots(log_dir, gt_params_pkl, savefig=False):
     if savefig:
         fig.savefig(f'{log_dir}_convergence.png')
     else:
-        fig.show()
+        plt.show(block=True)
 
 
     # Plot profile comparison
@@ -82,36 +82,18 @@ def generate_plots(log_dir, gt_params_pkl, savefig=False):
     if savefig:
         fig.savefig(f'{log_dir}_profile.png')
     else:
-        fig.show()
+        plt.show(block=True)
 
 
 if __name__ == '__main__':
     base_dir = 'results/model/convergence_test_by_mutations_freq_fix_aid/'
 
-    log_dirs = ['05_11_2023-16_32_19_model_version-merged_vocab_size_100_n_sequences-10000',
-                '05_11_2023-16_34_04_model_version-merged_vocab_size_50_n_sequences-10000',
-                '05_11_2023-16_46_13_model_version-merged_vocab_size_100_n_sequences-100000',
-                '05_11_2023-16_46_35_model_version-merged_vocab_size_50_n_sequences-100000',
-                '05_11_2023-20_23_58_model_version-merged_vocab_size_200_n_sequences-1000000',
-                '07_11_2023-19_54_05_model_version-merged_vocab_size_100_n_sequences-1000000']
-
-    gt_params_pkls = ['original_parameters_model_version-merged_vocab_size_100_n_sequences-10000.pkl', 
-                      'original_parameters_model_version-merged_vocab_size_50_n_sequences-10000.pkl', 
-                      'original_parameters_model_version-merged_vocab_size_100_n_sequences-100000.pkl', 
-                      'original_parameters_model_version-merged_vocab_size_50_n_sequences-100000.pkl', 
-                      'original_parameters_model_version-merged_vocab_size_200_n_sequences-1000000.pkl', 
-                      'original_parameters_model_version-merged_vocab_size_100_n_sequences-1000000.pkl']
-
-    base_dir = 'results/model/convergence_test_v3/'
-
     log_dirs = [
-                '14_04_2024-13_04_21_model_version-v3_188_486_n_sequences-1000000',
-                '14_04_2024-13_17_26_model_version-v3_99_164_n_sequences-1000000',
+                '07_11_2023-19_54_05_model_version-merged_vocab_size_100_n_sequences-1000000/',
                ]
 
     gt_params_pkls = [
-                      'original_parameters_model_version-v3_188_486_n_sequences-1000000.pkl', 
-                      'original_parameters_model_version-v3_99_164_n_sequences-1000000.pkl', 
+                      'original_parameters_model_version-merged_vocab_size_100_n_sequences-1000000.pkl', 
                      ]
 
     for lg, gpp in zip(log_dirs, gt_params_pkls):

@@ -22,13 +22,19 @@ def motif_ambiguity_to_regex(ambiguity_motif):
 def assign_motif_probs(sequence, motif_list, anchor_dict, regex_dict, motif_idx_dict, prob_array):
     assigned_probs = torch.zeros(len(sequence))
 
+    count = np.zeros(len(assigned_probs))
+
     for motif in motif_list:
         offset = anchor_dict[motif]
         regex = regex_dict[motif]
         prob = prob_array[motif_idx_dict[motif]]
         positions = [match.start() + offset for match in regex.finditer(sequence, overlapped=True)]
+
+        count[positions] += 1
+
         assigned_probs[positions] = prob
 
+    import ipdb; ipdb.set_trace()
     return assigned_probs
 
 def assign_motif_probs_v3(sequence, motif_dict, dummy, yummy, wummy, prob_array):
