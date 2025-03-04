@@ -150,3 +150,18 @@ def randomize_and_save_params(parameters, save_path):
         pickle.dump(parameters, f)
 
     return 
+
+
+def some_other_profile():
+    def double_peak_function(x, peak_width=1, peak_height=1, center_height=2):
+        left_peak = peak_height * np.exp(-((x + 1) ** 2) / (2 * peak_width ** 2))
+        right_peak = peak_height * np.exp(-((x - 3) ** 2) / (2 * peak_width ** 2))
+        center_value = center_height * np.exp(-((x - 1) ** 2) / (2 * (peak_width / 2) ** 2))
+        return left_peak + right_peak + center_value
+
+    x_values = x_values = np.linspace(-5, 5, 500)
+    y_values = double_peak_function(x_values, peak_width=2, center_height=-0.5)
+    sampled_y_values = y_values[10::16]
+    return normalize(torch.tensor(sampled_y_values))
+
+
